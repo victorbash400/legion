@@ -666,10 +666,6 @@ cache = redis.Redis(host='localhost', port=6379)
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md).
-
 ### Development Setup
 ```bash
 # Install development dependencies
@@ -692,26 +688,17 @@ mypy agents/ services/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
 
 ## 🙏 Acknowledgments
 
 - Google Cloud team for the ADK framework inspiration
-- OpenAI for advancing conversational AI
+- perplexity for advancing conversational AI
 - The open-source community for invaluable tools and libraries
 
 ---
 
 <div align="center">
   
-  **Built with ❤️ by the Legion Team**
-  
-  [Documentation](https://legion-docs.example.com) • [Issues](https://github.com/your-org/legion/issues) • [Discussions](https://github.com/your-org/legion/discussions)
+  **Built with 🍵 by the Legion Team**
   
 </div>
