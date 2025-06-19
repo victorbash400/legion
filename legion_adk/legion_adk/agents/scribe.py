@@ -11,6 +11,7 @@ from agents.base_adk_agent import BaseADKAgent
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+import google.auth.transport.requests
 
 class ScribeADKAgent(BaseADKAgent):
     """SCRIBE - Creates Google Docs/Sheets/Slides from ready-made content"""
@@ -26,11 +27,20 @@ class ScribeADKAgent(BaseADKAgent):
         # Try environment variable first (recommended for production)
         google_creds_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
         
+        print(f"SCRIBE DEBUG: Environment variable exists: {google_creds_json is not None}")
+        if google_creds_json:
+            print(f"SCRIBE DEBUG: Environment variable length: {len(google_creds_json)}")
+            print(f"SCRIBE DEBUG: Environment variable starts with: {google_creds_json[:100]}...")
+        
         try:
             if google_creds_json:
                 print("SCRIBE: Using Google credentials from environment variable")
                 # Parse JSON from environment variable
                 creds_info = json.loads(google_creds_json)
+                print(f"SCRIBE DEBUG: Parsed JSON keys: {list(creds_info.keys())}")
+                print(f"SCRIBE DEBUG: Project ID: {creds_info.get('project_id')}")
+                print(f"SCRIBE DEBUG: Client email: {creds_info.get('client_email')}")
+                
                 credentials = service_account.Credentials.from_service_account_info(
                     creds_info,
                     scopes=[
@@ -40,8 +50,9 @@ class ScribeADKAgent(BaseADKAgent):
                         'https://www.googleapis.com/auth/presentations'
                     ]
                 )
+                print("SCRIBE DEBUG: Credentials object created successfully")
             else:
-                print("SCRIBE: Using Google credentials from file (local development)")
+                print("SCRIBE: No environment variable found, using file (local development)")
                 # Fallback to file (for local development)
                 creds_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
                                          'credentials', 'google_docs_cred.json')
@@ -62,6 +73,11 @@ class ScribeADKAgent(BaseADKAgent):
                     ]
                 )
             
+            # Test credentials by trying to refresh them
+            print("SCRIBE DEBUG: Testing credential refresh...")
+            credentials.refresh(google.auth.transport.requests.Request())
+            print("SCRIBE DEBUG: Credentials refreshed successfully")
+            
             # Initialize Google API services
             self.docs_service = build('docs', 'v1', credentials=credentials)
             self.drive_service = build('drive', 'v3', credentials=credentials)
@@ -75,6 +91,9 @@ class ScribeADKAgent(BaseADKAgent):
             raise
         except Exception as e:
             print(f"SCRIBE ERROR: Failed to initialize Google services: {e}")
+            print(f"SCRIBE ERROR: Error type: {type(e)}")
+            import traceback
+            print(f"SCRIBE ERROR: Full traceback: {traceback.format_exc()}")
             raise
 
     def _get_agent_personality(self) -> str:
