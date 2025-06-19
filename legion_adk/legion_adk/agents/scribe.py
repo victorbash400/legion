@@ -40,6 +40,17 @@ class ScribeADKAgent(BaseADKAgent):
                 print(f"SCRIBE DEBUG: Parsed JSON keys: {list(creds_info.keys())}")
                 print(f"SCRIBE DEBUG: Project ID: {creds_info.get('project_id')}")
                 print(f"SCRIBE DEBUG: Client email: {creds_info.get('client_email')}")
+                print(f"SCRIBE DEBUG: Private key starts with: {creds_info.get('private_key', '')[:100]}...")
+                print(f"SCRIBE DEBUG: Private key ends with: ...{creds_info.get('private_key', '')[-50:]}")
+                
+                # Check if private key has proper format
+                private_key = creds_info.get('private_key', '')
+                if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
+                    print("SCRIBE ERROR: Private key doesn't start with proper header")
+                if not private_key.endswith('-----END PRIVATE KEY-----\n'):
+                    print("SCRIBE ERROR: Private key doesn't end with proper footer")
+                if '\\n' in private_key:
+                    print("SCRIBE ERROR: Private key contains literal \\n instead of actual newlines")
                 
                 credentials = service_account.Credentials.from_service_account_info(
                     creds_info,
@@ -73,10 +84,8 @@ class ScribeADKAgent(BaseADKAgent):
                     ]
                 )
             
-            # Test credentials by trying to refresh them
-            print("SCRIBE DEBUG: Testing credential refresh...")
-            credentials.refresh(google.auth.transport.requests.Request())
-            print("SCRIBE DEBUG: Credentials refreshed successfully")
+            # Don't test credentials during initialization - test when actually used
+            print("SCRIBE DEBUG: Skipping credential refresh test during initialization")
             
             # Initialize Google API services
             self.docs_service = build('docs', 'v1', credentials=credentials)
@@ -201,6 +210,26 @@ class ScribeADKAgent(BaseADKAgent):
 
     async def _create_google_doc(self, deliverable: Dict[str, Any]) -> Dict[str, Any]:
         """Create Google Doc from provided content"""
+        
+        # Test credentials on first actual use
+        try:
+            print("SCRIBE DEBUG: Testing credentials on actual API call...")
+            # Try a simple API call first
+            test_doc = self.docs_service.documents().create(body={'title': 'Test Document'}).execute()
+            test_doc_id = test_doc.get('documentId')
+            print(f"SCRIBE DEBUG: Test document created successfully: {test_doc_id}")
+            
+            # Delete the test document
+            self.drive_service.files().delete(fileId=test_doc_id).execute()
+            print("SCRIBE DEBUG: Test document deleted successfully")
+            
+        except Exception as e:
+            print(f"SCRIBE ERROR: Credential test failed: {e}")
+            print(f"SCRIBE ERROR: Error type: {type(e)}")
+            # Try to get more details about the error
+            if hasattr(e, 'resp') and hasattr(e.resp, 'content'):
+                print(f"SCRIBE ERROR: Response content: {e.resp.content}")
+            raise
         
         title = deliverable.get("title", f"Document_{datetime.now().strftime('%Y%m%d_%H%M')}")
         content = deliverable.get("content", {})
