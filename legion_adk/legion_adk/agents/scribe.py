@@ -1,4 +1,4 @@
-# agents/adk_scribe.py - SCRIBE creates Google Docs/Sheets/Slides from AUGUR's content with environment-based credentials
+# agents/adk_scribe.py - SCRIBE creates Google Docs/Sheets/Slides from AUGUR's content with hardcoded credentials
 
 import os
 import uuid
@@ -21,75 +21,38 @@ class ScribeADKAgent(BaseADKAgent):
         print("SCRIBE: Ready to create Google documents from provided content")
 
     def _init_google_services(self):
-        """Initialize Google services using Base64 environment variable or file fallback"""
+        """Initialize Google services using hardcoded credentials"""
         
-        import base64
-        
-        # Try Base64 environment variable first (recommended for production)
-        google_creds_b64 = os.environ.get('GOOGLE_CREDENTIALS_B64')
+        # Hardcoded Google service account credentials
+        creds_info = {
+            "type": "service_account",
+            "project_id": "ascendant-woods-462020-n0",
+            "private_key_id": "40a18cfbc249aa5e84ac4c7ba3d0dc72f1de275c",
+            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCohfNMZrMcRvHQ\n5eJ81fJ+iTJiab9XaA5Itdp6svuCrDsoc0NIjpxxF5hG9FLzBTHWK6dk7k9z457r\nuYeqswFf0xJ6UJm2lZk89qLTXRGm0bBCYPSCgGx++0qvszBTS6A+5tqQCw7KzOoZ\nLi17wIF/kCHrIID/+ND6uPOM28t1gSah9QphDPSJ+tufc/gVIQpz67ILoCi3GFyA\n+iOF3kqkgjTaF8WhvfQ3gzowcY0+rxuTb1rJsTgRZzGNEjc5477j19klHLnggqi3\nZ5CWX7tcvOT9ObmmEJRaEwCF3Go61PAeS1dFvciSwyykspKRYwVc+yEveRi3rSYN\nxWvP6gpjAgMBAAECggEAKuV92tLBgM8mOpBpqHElOsRdiON2Cx+3kxaHOHhawRZq\nMI+2br+uXrMs1dLXUnjeCLAv+ecXXl5wU3x0ZiUOkn+90li1594IlZYKOFcWaSoy\n/ZKEaruZ4nDAwBySjoFPlvNYaxYFe+XRKPuyJDAKRpg/qgQqEf4Z49g0VoSUM6J0\nEZ402tjhN4c5Yx6BUk28t7cRz2uaaymWXwJU73yCTb+UtqoJHATjJGQNEdcVoUrY\nDpYEL2m1Ki3Mnh8BHIGv4GIBNd2nGwXtBhWWpthfE1dsjHvKHXEamEwZmgRenznO\nBcjnMhlsO9PqH0bk9frWhgq/RxVaotrslscL1ap84QKBgQDmDI7e890+8NdPK0os\np3lE7jRkNjzHipwTlYcPuFwh8ihLyYy9P6nmahhTBrg9em5qjDOgJvUvg/K54cOL\n0PniRYwE6AWk9QlUxUZV8m/NSC2ZJYawoH6vPDVnyIgruaoaFZsvO0jsF61e4xuL\nc8FYQF4KBkwv3u67fv3bWvFeewKBgQC7iKCJwb8J9q47Dc7RRy6tSMP00eX5uxRO\n7RiZUJIfNX+3L853TWRjGxxe/Dx/DozZB0NMTruYSKjwKo+n40Ty9fwBiqpq//XQ\nH+G/SJU01EiViPBo2m3kmqXM8cggXxfJu5tc8CTncwLOacPlP9NEMZ40sFzqcH2a\nkHFHxJSzOQKBgQCH1NJnAkaYa0w2CrF5PEl2Uc/Ne9jXWRhe1+MvfQOpZ3ozhYX8\nGCMRUYObQlR2uFuJvc6duWL780TWTF9Rpspkt/u8yeLLS4N+8hxdkxBAfWWvD2E/\n2QP0I/DEnrsIVlABptBCSxb7j99mL2KMLIT0vszHzoAdo9wCCTGK21+5EQKBgDp5\ngK1Tp1DhBTTOumVRD8HihY+J/26eIdf2YAw2Lkni8Z7aHkPe8uVgJ7mKZwarL8ng\nVOCvUBlM1riEXOTZnb8walLEvRy+ERTDTC3L4RJm+vb9ixD2wvtcKUS9Q0ysugsi\nH3CcRLWSjBZ2rimGfEawPgdp0p8bUl7mmRvqtP8pAoGAbFGOi5fDBReQPgXNT6VW\nKruclhQFLwdtMrcybkWPFbCFQjr2HqmEOoZION8k9JKMezkeF2ZSEXSA9+mYFlcr\nrFGGFPzHu4UEqUUzoELXimXG7mqO69HfobFWHC8s3xL+J8kklT5c84C6wqRgb6J4\nZ2J6fHfOCt4n4xkjwr46j/g=\n-----END PRIVATE KEY-----\n",
+            "client_email": "scribe-doc-generator@ascendant-woods-462020-n0.iam.gserviceaccount.com",
+            "client_id": "100006225373116583872",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/scribe-doc-generator%40ascendant-woods-462020-n0.iam.gserviceaccount.com",
+            "universe_domain": "googleapis.com"
+        }
         
         try:
-            if google_creds_b64:
-                print("SCRIBE: Using Google credentials from Base64 environment variable")
-                print(f"SCRIBE DEBUG: Base64 env var length: {len(google_creds_b64)}")
-                
-                # Decode Base64 to JSON
-                try:
-                    creds_json = base64.b64decode(google_creds_b64).decode('utf-8')
-                    print("🔎 SCRIBE DEBUG - RAW CREDS JSON:\n" + creds_json[:1000] + "\n...TRUNCATED...")
-                    print("SCRIBE DEBUG: Successfully decoded Base64")
-                except Exception as e:
-                    print(f"SCRIBE ERROR: Failed to decode Base64: {e}")
-                    raise
-                
-                # Parse JSON
-                creds_info = json.loads(creds_json)
-                print(f"SCRIBE DEBUG: Parsed JSON keys: {list(creds_info.keys())}")
-                print(f"SCRIBE DEBUG: Project ID: {creds_info.get('project_id')}")
-                print(f"SCRIBE DEBUG: Client email: {creds_info.get('client_email')}")
-                
-                # Validate private key (should be properly formatted now)
-                if 'private_key' in creds_info:
-                    private_key = creds_info['private_key']
-                    print(f"SCRIBE DEBUG: Private key length: {len(private_key)}")
-                    print(f"SCRIBE DEBUG: Key starts properly: {private_key.startswith('-----BEGIN PRIVATE KEY-----')}")
-                    print(f"SCRIBE DEBUG: Key ends properly: {private_key.rstrip().endswith('-----END PRIVATE KEY-----')}")
-                    
-                    if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
-                        raise ValueError("Invalid private key format - missing header")
-                    if not private_key.rstrip().endswith('-----END PRIVATE KEY-----'):
-                        raise ValueError("Invalid private key format - missing footer")
-                
-                credentials = service_account.Credentials.from_service_account_info(
-                    creds_info,
-                    scopes=[
-                        'https://www.googleapis.com/auth/documents',
-                        'https://www.googleapis.com/auth/drive',
-                        'https://www.googleapis.com/auth/spreadsheets',
-                        'https://www.googleapis.com/auth/presentations'
-                    ]
-                )
-            else:
-                print("SCRIBE: Using Google credentials from file (local development)")
-                # Fallback to file (for local development)
-                creds_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
-                                         'credentials', 'google_docs_cred.json')
-                
-                print(f"SCRIBE DEBUG: Looking for credentials at: {creds_path}")
-                print(f"SCRIBE DEBUG: File exists: {os.path.exists(creds_path)}")
-                
-                if not os.path.exists(creds_path):
-                    raise FileNotFoundError(f"Google credentials file not found at {creds_path}")
-                
-                credentials = service_account.Credentials.from_service_account_file(
-                    creds_path,
-                    scopes=[
-                        'https://www.googleapis.com/auth/documents',
-                        'https://www.googleapis.com/auth/drive',
-                        'https://www.googleapis.com/auth/spreadsheets',
-                        'https://www.googleapis.com/auth/presentations'
-                    ]
-                )
+            print("SCRIBE: Using hardcoded Google credentials")
+            print(f"SCRIBE DEBUG: Project ID: {creds_info.get('project_id')}")
+            print(f"SCRIBE DEBUG: Client email: {creds_info.get('client_email')}")
+            
+            # Create credentials directly from hardcoded info
+            credentials = service_account.Credentials.from_service_account_info(
+                creds_info,
+                scopes=[
+                    'https://www.googleapis.com/auth/documents',
+                    'https://www.googleapis.com/auth/drive',
+                    'https://www.googleapis.com/auth/spreadsheets',
+                    'https://www.googleapis.com/auth/presentations'
+                ]
+            )
             
             # Initialize Google API services
             self.docs_service = build('docs', 'v1', credentials=credentials)
@@ -99,9 +62,6 @@ class ScribeADKAgent(BaseADKAgent):
             
             print("SCRIBE: Google services initialized successfully")
             
-        except json.JSONDecodeError as e:
-            print(f"SCRIBE ERROR: Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON environment variable: {e}")
-            raise
         except Exception as e:
             print(f"SCRIBE ERROR: Failed to initialize Google services: {e}")
             print(f"SCRIBE ERROR: Error type: {type(e)}")
