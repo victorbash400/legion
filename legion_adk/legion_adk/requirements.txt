@@ -1,0 +1,20 @@
+# Core Framework
+fastapi>=0.110.0
+uvicorn[standard]==0.24.0
+sse-starlette==1.6.5
+pydantic>=2.8.0
+python-dotenv==1.0.0
+
+# ADK and Google Cloud
+google-cloud-firestore==2.13.1
+google-cloud-storage==2.10.0
+google-cloud-bigquery==3.13.0
+google-generativeai==0.3.2
+google-api-python-client==2.108.0
+google-adk
+
+# Utilities
+requests
+httpx==0.25.2
+aiofiles==23.2.1
+python-multipart==0.0.6
