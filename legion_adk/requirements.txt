@@ -12,13 +12,9 @@ google-cloud-bigquery==3.13.0
 google-generativeai==0.3.2
 google-api-python-client==2.108.0
 google-adk
-google-generativeai
-requests
-python-dotenv
-
 
 # Utilities
+requests
 httpx==0.25.2
 aiofiles==23.2.1
 python-multipart==0.0.6
-google-generative-ai-toolkit==0.2.0 # The ADK library
