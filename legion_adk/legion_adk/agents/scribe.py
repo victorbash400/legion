@@ -28,7 +28,34 @@ class ScribeADKAgent(BaseADKAgent):
             "type": "service_account",
             "project_id": "ascendant-woods-462020-n0",
             "private_key_id": "40a18cfbc249aa5e84ac4c7ba3d0dc72f1de275c",
-            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCohfNMZrMcRvHQ\n5eJ81fJ+iTJiab9XaA5Itdp6svuCrDsoc0NIjpxxF5hG9FLzBTHWK6dk7k9z457r\nuYeqswFf0xJ6UJm2lZk89qLTXRGm0bBCYPSCgGx++0qvszBTS6A+5tqQCw7KzOoZ\nLi17wIF/kCHrIID/+ND6uPOM28t1gSah9QphDPSJ+tufc/gVIQpz67ILoCi3GFyA\n+iOF3kqkgjTaF8WhvfQ3gzowcY0+rxuTb1rJsTgRZzGNEjc5477j19klHLnggqi3\nZ5CWX7tcvOT9ObmmEJRaEwCF3Go61PAeS1dFvciSwyykspKRYwVc+yEveRi3rSYN\nxWvP6gpjAgMBAAECggEAKuV92tLBgM8mOpBpqHElOsRdiON2Cx+3kxaHOHhawRZq\nMI+2br+uXrMs1dLXUnjeCLAv+ecXXl5wU3x0ZiUOkn+90li1594IlZYKOFcWaSoy\n/ZKEaruZ4nDAwBySjoFPlvNYaxYFe+XRKPuyJDAKRpg/qgQqEf4Z49g0VoSUM6J0\nEZ402tjhN4c5Yx6BUk28t7cRz2uaaymWXwJU73yCTb+UtqoJHATjJGQNEdcVoUrY\nDpYEL2m1Ki3Mnh8BHIGv4GIBNd2nGwXtBhWWpthfE1dsjHvKHXEamEwZmgRenznO\nBcjnMhlsO9PqH0bk9frWhgq/RxVaotrslscL1ap84QKBgQDmDI7e890+8NdPK0os\np3lE7jRkNjzHipwTlYcPuFwh8ihLyYy9P6nmahhTBrg9em5qjDOgJvUvg/K54cOL\n0PniRYwE6AWk9QlUxUZV8m/NSC2ZJYawoH6vPDVnyIgruaoaFZsvO0jsF61e4xuL\nc8FYQF4KBkwv3u67fv3bWvFeewKBgQC7iKCJwb8J9q47Dc7RRy6tSMP00eX5uxRO\n7RiZUJIfNX+3L853TWRjGxxe/Dx/DozZB0NMTruYSKjwKo+n40Ty9fwBiqpq//XQ\nH+G/SJU01EiViPBo2m3kmqXM8cggXxfJu5tc8CTncwLOacPlP9NEMZ40sFzqcH2a\nkHFHxJSzOQKBgQCH1NJnAkaYa0w2CrF5PEl2Uc/Ne9jXWRhe1+MvfQOpZ3ozhYX8\nGCMRUYObQlR2uFuJvc6duWL780TWTF9Rpspkt/u8yeLLS4N+8hxdkxBAfWWvD2E/\n2QP0I/DEnrsIVlABptBCSxb7j99mL2KMLIT0vszHzoAdo9wCCTGK21+5EQKBgDp5\ngK1Tp1DhBTTOumVRD8HihY+J/26eIdf2YAw2Lkni8Z7aHkPe8uVgJ7mKZwarL8ng\nVOCvUBlM1riEXOTZnb8walLEvRy+ERTDTC3L4RJm+vb9ixD2wvtcKUS9Q0ysugsi\nH3CcRLWSjBZ2rimGfEawPgdp0p8bUl7mmRvqtP8pAoGAbFGOi5fDBReQPgXNT6VW\nKruclhQFLwdtMrcybkWPFbCFQjr2HqmEOoZION8k9JKMezkeF2ZSEXSA9+mYFlcr\nrFGGFPzHu4UEqUUzoELXimXG7mqO69HfobFWHC8s3xL+J8kklT5c84C6wqRgb6J4\nZ2J6fHfOCt4n4xkjwr46j/g=\n-----END PRIVATE KEY-----\n",
+            "private_key": """-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCohfNMZrMcRvHQ
+5eJ81fJ+iTJiab9XaA5Itdp6svuCrDsoc0NIjpxxF5hG9FLzBTHWK6dk7k9z457r
+uYeqswFf0xJ6UJm2lZk89qLTXRGm0bBCYPSCgGx++0qvszBTS6A+5tqQCw7KzOoZ
+Li17wIF/kCHrIID/+ND6uPOM28t1gSah9QphDPSJ+tufc/gVIQpz67ILoCi3GFyA
++iOF3kqkgjTaF8WhvfQ3gzowcY0+rxuTb1rJsTgRZzGNEjc5477j19klHLnggqi3
+Z5CWX7tcvOT9ObmmEJRaEwCF3Go61PAeS1dFvciSwyykspKRYwVc+yEveRi3rSYN
+xWvP6gpjAgMBAAECggEAKuV92tLBgM8mOpBpqHElOsRdiON2Cx+3kxaHOHhawRZq
+MI+2br+uXrMs1dLXUnjeCLAv+ecXXl5wU3x0ZiUOkn+90li1594IlZYKOFcWaSoy
+/ZKEaruZ4nDAwBySjoFPlvNYaxYFe+XRKPuyJDAKRpg/qgQqEf4Z49g0VoSUM6J0
+EZ402tjhN4c5Yx6BUk28t7cRz2uaaymWXwJU73yCTb+UtqoJHATjJGQNEdcVoUrY
+DpYEL2m1Ki3Mnh8BHIGv4GIBNd2nGwXtBhWWpthfE1dsjHvKHXEamEwZmgRenznO
+BcjnMhlsO9PqH0bk9frWhgq/RxVaotrslscL1ap84QKBgQDmDI7e890+8NdPK0os
+p3lE7jRkNjzHipwTlYcPuFwh8ihLyYy9P6nmahhTBrg9em5qjDOgJvUvg/K54cOL
+0PniRYwE6AWk9QlUxUZV8m/NSC2ZJYawoH6vPDVnyIgruaoaFZsvO0jsF61e4xuL
+c8FYQF4KBkwv3u67fv3bWvFeewKBgQC7iKCJwb8J9q47Dc7RRy6tSMP00eX5uxRO
+7RiZUJIfNX+3L853TWRjGxxe/Dx/DozZB0NMTruYSKjwKo+n40Ty9fwBiqpq//XQ
+H+G/SJU01EiViPBo2m3kmqXM8cggXxfJu5tc8CTncwLOacPlP9NEMZ40sFzqcH2a
+kHFHxJSzOQKBgQCH1NJnAkaYa0w2CrF5PEl2Uc/Ne9jXWRhe1+MvfQOpZ3ozhYX8
+GCMRUYObQlR2uFuJvc6duWL780TWTF9Rpspkt/u8yeLLS4N+8hxdkxBAfWWvD2E/
+2QP0I/DEnrsIVlABptBCSxb7j99mL2KMLIT0vszHzoAdo9wCCTGK21+5EQKBgDp5
+gK1Tp1DhBTTOumVRD8HihY+J/26eIdf2YAw2Lkni8Z7aHkPe8uVgJ7mKZwarL8ng
+VOCvUBlM1riEXOTZnb8walLEvRy+ERTDTC3L4RJm+vb9ixD2wvtcKUS9Q0ysugsi
+H3CcRLWSjBZ2rimGfEawPgdp0p8bUl7mmRvqtP8pAoGAbFGOi5fDBReQPgXNT6VW
+KruclhQFLwdtMrcybkWPFbCFQjr2HqmEOoZION8k9JKMezkeF2ZSEXSA9+mYFlcr
+rFGGFPzHu4UEqUUzoELXimXG7mqO69HfobFWHC8s3xL+J8kklT5c84C6wqRgb6J4
+Z2J6fHfOCt4n4xkjwr46j/g=
+-----END PRIVATE KEY-----""",
             "client_email": "scribe-doc-generator@ascendant-woods-462020-n0.iam.gserviceaccount.com",
             "client_id": "100006225373116583872",
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -42,6 +69,7 @@ class ScribeADKAgent(BaseADKAgent):
             print("SCRIBE: Using hardcoded Google credentials")
             print(f"SCRIBE DEBUG: Project ID: {creds_info.get('project_id')}")
             print(f"SCRIBE DEBUG: Client email: {creds_info.get('client_email')}")
+            print(f"✅ Line count in key: {len(creds_info['private_key'].splitlines())}")
             
             # Create credentials directly from hardcoded info
             credentials = service_account.Credentials.from_service_account_info(
