@@ -21,68 +21,43 @@ class ScribeADKAgent(BaseADKAgent):
         print("SCRIBE: Ready to create Google documents from provided content")
 
     def _init_google_services(self):
-        """Initialize Google services using environment variable or file fallback"""
+        """Initialize Google services using Base64 environment variable or file fallback"""
         
-        # Try environment variable first (recommended for production)
-        google_creds_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
+        import base64
+        
+        # Try Base64 environment variable first (recommended for production)
+        google_creds_b64 = os.environ.get('GOOGLE_CREDENTIALS_B64')
         
         try:
-            if google_creds_json:
-                print("SCRIBE: Using Google credentials from environment variable")
-                print(f"SCRIBE DEBUG: Environment variable exists: {bool(google_creds_json)}")
-                print(f"SCRIBE DEBUG: Environment variable length: {len(google_creds_json)}")
-                print(f"SCRIBE DEBUG: Environment variable starts with: {google_creds_json[:100]}...")
+            if google_creds_b64:
+                print("SCRIBE: Using Google credentials from Base64 environment variable")
+                print(f"SCRIBE DEBUG: Base64 env var length: {len(google_creds_b64)}")
                 
-                # Parse JSON from environment variable
-                creds_info = json.loads(google_creds_json)
+                # Decode Base64 to JSON
+                try:
+                    creds_json = base64.b64decode(google_creds_b64).decode('utf-8')
+                    print("SCRIBE DEBUG: Successfully decoded Base64")
+                except Exception as e:
+                    print(f"SCRIBE ERROR: Failed to decode Base64: {e}")
+                    raise
+                
+                # Parse JSON
+                creds_info = json.loads(creds_json)
                 print(f"SCRIBE DEBUG: Parsed JSON keys: {list(creds_info.keys())}")
                 print(f"SCRIBE DEBUG: Project ID: {creds_info.get('project_id')}")
                 print(f"SCRIBE DEBUG: Client email: {creds_info.get('client_email')}")
                 
-                # CRITICAL FIX: Handle private key newlines properly
+                # Validate private key (should be properly formatted now)
                 if 'private_key' in creds_info:
-                    original_key = creds_info['private_key']
-                    print(f"SCRIBE DEBUG: Original private key length: {len(original_key)}")
-                    print(f"SCRIBE DEBUG: Private key starts with: {original_key[:100]}...")
-                    print(f"SCRIBE DEBUG: Private key ends with: ...{original_key[-100:]}")
+                    private_key = creds_info['private_key']
+                    print(f"SCRIBE DEBUG: Private key length: {len(private_key)}")
+                    print(f"SCRIBE DEBUG: Key starts properly: {private_key.startswith('-----BEGIN PRIVATE KEY-----')}")
+                    print(f"SCRIBE DEBUG: Key ends properly: {private_key.rstrip().endswith('-----END PRIVATE KEY-----')}")
                     
-                    # Check if key contains literal \n
-                    if '\\n' in original_key:
-                        print("SCRIBE DEBUG: Found literal \\n in key, converting to actual newlines")
-                        creds_info['private_key'] = original_key.replace('\\n', '\n')
-                        print("SCRIBE DEBUG: Converted \\n to actual newlines")
-                    elif '\n' not in original_key:
-                        print("SCRIBE ERROR: Private key has no newlines at all - malformed")
-                        raise ValueError("Private key appears to be malformed - no newlines found")
-                    else:
-                        print("SCRIBE DEBUG: Private key already has actual newlines")
-                    
-                    # Verify key format after processing
-                    processed_key = creds_info['private_key']
-                    if not processed_key.startswith('-----BEGIN PRIVATE KEY-----'):
-                        print("SCRIBE ERROR: Private key doesn't start with proper header")
-                        raise ValueError("Invalid private key format")
-                        
-                    if not processed_key.rstrip().endswith('-----END PRIVATE KEY-----'):
-                        print("SCRIBE ERROR: Private key doesn't end with proper footer")
-                        print(f"SCRIBE DEBUG: Key actually ends with: '{processed_key[-50:]}'")
-                        # Try to fix common issues
-                        if processed_key.rstrip().endswith('-----END PRIVATE KEY-----\\n'):
-                            print("SCRIBE: Fixing trailing \\n")
-                            creds_info['private_key'] = processed_key.replace('\\n', '\n')
-                        else:
-                            raise ValueError("Invalid private key format")
-                    
-                    # Final validation
-                    final_key = creds_info['private_key']
-                    lines = final_key.split('\n')
-                    print(f"SCRIBE DEBUG: Private key has {len(lines)} lines after processing")
-                    print(f"SCRIBE DEBUG: First line: '{lines[0]}'")
-                    print(f"SCRIBE DEBUG: Last line: '{lines[-1] if lines else 'NONE'}'")
-                    
-                    if len(lines) < 2:
-                        print("SCRIBE ERROR: Private key has too few lines")
-                        raise ValueError("Private key malformed - insufficient lines")
+                    if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
+                        raise ValueError("Invalid private key format - missing header")
+                    if not private_key.rstrip().endswith('-----END PRIVATE KEY-----'):
+                        raise ValueError("Invalid private key format - missing footer")
                 
                 credentials = service_account.Credentials.from_service_account_info(
                     creds_info,
