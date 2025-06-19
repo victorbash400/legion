@@ -36,6 +36,7 @@ class ScribeADKAgent(BaseADKAgent):
                 # Decode Base64 to JSON
                 try:
                     creds_json = base64.b64decode(google_creds_b64).decode('utf-8')
+                    print("🔎 SCRIBE DEBUG - RAW CREDS JSON:\n" + creds_json[:1000] + "\n...TRUNCATED...")
                     print("SCRIBE DEBUG: Successfully decoded Base64")
                 except Exception as e:
                     print(f"SCRIBE ERROR: Failed to decode Base64: {e}")
