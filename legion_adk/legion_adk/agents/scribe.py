@@ -4,6 +4,7 @@ import os
 import uuid
 import json
 import datetime
+import time
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from services.state_manager import StateManager
@@ -12,6 +13,7 @@ from agents.base_adk_agent import BaseADKAgent
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
 
 class ScribeADKAgent(BaseADKAgent):
     """SCRIBE - Creates Google Docs/Sheets/Slides from ready-made content"""
@@ -24,7 +26,7 @@ class ScribeADKAgent(BaseADKAgent):
     def _init_google_services(self):
         """Initialize Google services using hardcoded credentials"""
         
-        # Hardcoded Google service account credentials
+        # Hardcoded Google service account credentials - KEEP TRIPLE QUOTES!
         creds_info = {
             "type": "service_account",
             "project_id": "ascendant-woods-462020-n0",
@@ -67,12 +69,23 @@ Z2J6fHfOCt4n4xkjwr46j/g=
         }
         
         try:
-            print("SCRIBE: Using hardcoded Google credentials")
+            print("SCRIBE: Initializing Google services with hardcoded credentials")
             print(f"SCRIBE DEBUG: Project ID: {creds_info.get('project_id')}")
             print(f"SCRIBE DEBUG: Client email: {creds_info.get('client_email')}")
-            print(f"✅ Line count in key: {len(creds_info['private_key'].splitlines())}")
             
-            # Create credentials directly from hardcoded info
+            # Debug key format
+            print(f"SCRIBE DEBUG: Key starts with: {creds_info['private_key'][:50]}")
+            print(f"SCRIBE DEBUG: Key ends with: {creds_info['private_key'][-50:]}")
+            print(f"SCRIBE DEBUG: Total key length: {len(creds_info['private_key'])}")
+            print(f"SCRIBE DEBUG: Line count in key: {len(creds_info['private_key'].splitlines())}")
+            
+            # Check system time
+            current_time = datetime.utcnow()
+            unix_time = time.time()
+            print(f"⏰ SCRIBE DEBUG: Container UTC time: {current_time.isoformat()}Z")
+            print(f"⏰ SCRIBE DEBUG: Unix timestamp: {unix_time}")
+            
+            # Create credentials from service account info
             credentials = service_account.Credentials.from_service_account_info(
                 creds_info,
                 scopes=[
@@ -83,21 +96,73 @@ Z2J6fHfOCt4n4xkjwr46j/g=
                 ]
             )
             
-            # Initialize Google API services
-            self.docs_service = build('docs', 'v1', credentials=credentials)
-            self.drive_service = build('drive', 'v3', credentials=credentials)
-            self.sheets_service = build('sheets', 'v4', credentials=credentials)
-            self.slides_service = build('slides', 'v1', credentials=credentials)
+            print("SCRIBE: Credentials object created successfully")
             
-            print("SCRIBE: Google services initialized successfully")
+            # Force token refresh to handle potential clock skew
+            try:
+                credentials.refresh(Request())
+                print("✅ SCRIBE: Successfully refreshed credentials - JWT signed with current time")
+                
+                # Check if token was generated
+                if hasattr(credentials, 'token'):
+                    print(f"SCRIBE DEBUG: Token generated, expires at: {credentials.expiry}")
+                else:
+                    print("SCRIBE WARNING: No token attribute found after refresh")
+                    
+            except Exception as refresh_error:
+                print(f"❌ SCRIBE ERROR during token refresh: {refresh_error}")
+                print(f"SCRIBE ERROR Type: {type(refresh_error).__name__}")
+                
+                # Try to extract more details from the error
+                if hasattr(refresh_error, 'response'):
+                    print(f"SCRIBE ERROR Response: {refresh_error.response}")
+                if hasattr(refresh_error, 'content'):
+                    print(f"SCRIBE ERROR Content: {refresh_error.content}")
+                    
+                raise
+            
+            # Initialize Google API services
+            print("SCRIBE: Building Google API service clients...")
+            
+            self.docs_service = build('docs', 'v1', credentials=credentials)
+            print("✅ SCRIBE: Docs service initialized")
+            
+            self.drive_service = build('drive', 'v3', credentials=credentials)
+            print("✅ SCRIBE: Drive service initialized")
+            
+            self.sheets_service = build('sheets', 'v4', credentials=credentials)
+            print("✅ SCRIBE: Sheets service initialized")
+            
+            self.slides_service = build('slides', 'v1', credentials=credentials)
+            print("✅ SCRIBE: Slides service initialized")
+            
+            print("🎉 SCRIBE: All Google services initialized successfully!")
+            
+            # Test the credentials with a simple API call
+            try:
+                about = self.drive_service.about().get(fields="user").execute()
+                print(f"✅ SCRIBE: Test API call successful. Service account: {about.get('user', {}).get('emailAddress', 'Unknown')}")
+            except Exception as test_error:
+                print(f"⚠️ SCRIBE WARNING: Test API call failed: {test_error}")
+                # Don't raise here - the credentials might still work for other operations
             
         except Exception as e:
-            print(f"SCRIBE ERROR: Failed to initialize Google services: {e}")
-            print(f"SCRIBE ERROR: Error type: {type(e)}")
-            print("⏰ Container UTC time:", datetime.datetime.utcnow().isoformat() + "Z")
-
+            print(f"❌ SCRIBE CRITICAL ERROR: Failed to initialize Google services: {e}")
+            print(f"SCRIBE ERROR: Error type: {type(e).__name__}")
+            print(f"⏰ SCRIBE ERROR: Container UTC time at failure: {datetime.utcnow().isoformat()}Z")
+            
             import traceback
-            print(f"SCRIBE ERROR: Full traceback: {traceback.format_exc()}")
+            print("SCRIBE ERROR: Full traceback:")
+            print(traceback.format_exc())
+            
+            # Additional debugging for common issues
+            if "invalid_grant" in str(e):
+                print("\n🔍 SCRIBE DEBUG: Invalid grant error detected. Common causes:")
+                print("  1. Clock skew between container and Google servers")
+                print("  2. Corrupted private key during copy/paste")
+                print("  3. Service account has been deleted or key rotated")
+                print("  4. Incorrect project ID or client email")
+                
             raise
 
     def _get_agent_personality(self) -> str:
@@ -655,10 +720,15 @@ Z2J6fHfOCt4n4xkjwr46j/g=
 
     def _share_document(self, file_id: str):
         """Make document publicly viewable"""
-        self.drive_service.permissions().create(
-            fileId=file_id,
-            body={'type': 'anyone', 'role': 'reader'}
-        ).execute()
+        try:
+            self.drive_service.permissions().create(
+                fileId=file_id,
+                body={'type': 'anyone', 'role': 'reader'}
+            ).execute()
+            print(f"SCRIBE: Successfully shared document {file_id}")
+        except Exception as e:
+            print(f"SCRIBE WARNING: Could not share document {file_id}: {e}")
+            # Don't fail if sharing doesn't work
 
     async def receive_a2a_task(self, task: A2ATask) -> A2AResponse:
         """Handle A2A tasks"""
@@ -690,14 +760,23 @@ Z2J6fHfOCt4n4xkjwr46j/g=
             )
             
         except Exception as e:
+            error_msg = str(e)
+            print(f"SCRIBE ERROR in receive_a2a_task: {error_msg}")
+            
+            # Add more context for JWT errors
+            if "invalid_grant" in error_msg or "JWT" in error_msg:
+                error_msg = f"Authentication failed: {error_msg}. Check system time and credentials."
+            
             await self.state_manager.add_agent_conversation(
                 chat_id=task.chat_id, from_agent="SCRIBE",
-                to_agent=task.from_agent.upper(), message=f"Error: {str(e)}",
+                to_agent=task.from_agent.upper(), message=f"Error: {error_msg}",
                 conversation_type="task_error"
             )
             
             return A2AResponse(
                 task_id=task.task_id, status="error",
-                response_data={"error": str(e)}, conversation_message=f"Failed: {str(e)}",
-                artifacts=[], created_at=datetime.now().isoformat()
+                response_data={"error": error_msg}, 
+                conversation_message=f"Failed: {error_msg}",
+                artifacts=[], 
+                created_at=datetime.now().isoformat()
             )
