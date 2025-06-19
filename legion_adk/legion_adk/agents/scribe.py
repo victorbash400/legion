@@ -3,6 +3,7 @@
 import os
 import uuid
 import json
+import datetime
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from services.state_manager import StateManager
@@ -93,6 +94,8 @@ Z2J6fHfOCt4n4xkjwr46j/g=
         except Exception as e:
             print(f"SCRIBE ERROR: Failed to initialize Google services: {e}")
             print(f"SCRIBE ERROR: Error type: {type(e)}")
+            print("⏰ Container UTC time:", datetime.datetime.utcnow().isoformat() + "Z")
+
             import traceback
             print(f"SCRIBE ERROR: Full traceback: {traceback.format_exc()}")
             raise
