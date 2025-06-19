@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { Clock, Activity, FileText, Download, ExternalLink, Zap, Brain } from 'lucide-react';
 import { streamOperations } from '../../services/ResearchDashboard-api.js';
 import { getDeliverables } from '../../services/deliverables-api';
-
 import PropTypes from 'prop-types';
+
+const WS_BASE_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
 
 const AgentWorkspace = ({ chatId }) => {
   const [activeOperations, setActiveOperations] = useState([]);
@@ -43,7 +44,7 @@ const AgentWorkspace = ({ chatId }) => {
   const setupDeliverablesWebSocket = () => {
     closeDeliverablesWebSocket();
 
-    const wsUrl = `ws://localhost:3001/ws/${chatId}`;
+    const wsUrl = `${WS_BASE_URL}/ws/${chatId}`;
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onmessage = (event) => {

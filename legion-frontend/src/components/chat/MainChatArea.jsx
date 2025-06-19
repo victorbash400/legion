@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import ChatInput from './ChatInput';
 import ChatBubble from './ChatBubble';
 import { getChatById, saveMessage } from '../../services/MainChatArea-api';
+const WS_BASE_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
 
 export default function MainChatArea({ 
   sidebarOpen, 
@@ -41,9 +42,7 @@ export default function MainChatArea({
   }, [currentChatId]);
 
   const setupWebSocket = (chatId) => {
-    closeWebSocket();
-
-    const wsUrl = `ws://localhost:3001/ws/${chatId}`;
+    closeWebSocket();    const wsUrl = `${WS_BASE_URL}/ws/${chatId}`;
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
