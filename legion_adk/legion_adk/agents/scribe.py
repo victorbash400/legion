@@ -11,7 +11,6 @@ from agents.base_adk_agent import BaseADKAgent
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-import google.auth.transport.requests
 
 class ScribeADKAgent(BaseADKAgent):
     """SCRIBE - Creates Google Docs/Sheets/Slides from ready-made content"""
@@ -27,30 +26,63 @@ class ScribeADKAgent(BaseADKAgent):
         # Try environment variable first (recommended for production)
         google_creds_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
         
-        print(f"SCRIBE DEBUG: Environment variable exists: {google_creds_json is not None}")
-        if google_creds_json:
-            print(f"SCRIBE DEBUG: Environment variable length: {len(google_creds_json)}")
-            print(f"SCRIBE DEBUG: Environment variable starts with: {google_creds_json[:100]}...")
-        
         try:
             if google_creds_json:
                 print("SCRIBE: Using Google credentials from environment variable")
+                print(f"SCRIBE DEBUG: Environment variable exists: {bool(google_creds_json)}")
+                print(f"SCRIBE DEBUG: Environment variable length: {len(google_creds_json)}")
+                print(f"SCRIBE DEBUG: Environment variable starts with: {google_creds_json[:100]}...")
+                
                 # Parse JSON from environment variable
                 creds_info = json.loads(google_creds_json)
                 print(f"SCRIBE DEBUG: Parsed JSON keys: {list(creds_info.keys())}")
                 print(f"SCRIBE DEBUG: Project ID: {creds_info.get('project_id')}")
                 print(f"SCRIBE DEBUG: Client email: {creds_info.get('client_email')}")
-                print(f"SCRIBE DEBUG: Private key starts with: {creds_info.get('private_key', '')[:100]}...")
-                print(f"SCRIBE DEBUG: Private key ends with: ...{creds_info.get('private_key', '')[-50:]}")
                 
-                # Check if private key has proper format
-                private_key = creds_info.get('private_key', '')
-                if not private_key.startswith('-----BEGIN PRIVATE KEY-----'):
-                    print("SCRIBE ERROR: Private key doesn't start with proper header")
-                if not private_key.endswith('-----END PRIVATE KEY-----\n'):
-                    print("SCRIBE ERROR: Private key doesn't end with proper footer")
-                if '\\n' in private_key:
-                    print("SCRIBE ERROR: Private key contains literal \\n instead of actual newlines")
+                # CRITICAL FIX: Handle private key newlines properly
+                if 'private_key' in creds_info:
+                    original_key = creds_info['private_key']
+                    print(f"SCRIBE DEBUG: Original private key length: {len(original_key)}")
+                    print(f"SCRIBE DEBUG: Private key starts with: {original_key[:100]}...")
+                    print(f"SCRIBE DEBUG: Private key ends with: ...{original_key[-100:]}")
+                    
+                    # Check if key contains literal \n
+                    if '\\n' in original_key:
+                        print("SCRIBE DEBUG: Found literal \\n in key, converting to actual newlines")
+                        creds_info['private_key'] = original_key.replace('\\n', '\n')
+                        print("SCRIBE DEBUG: Converted \\n to actual newlines")
+                    elif '\n' not in original_key:
+                        print("SCRIBE ERROR: Private key has no newlines at all - malformed")
+                        raise ValueError("Private key appears to be malformed - no newlines found")
+                    else:
+                        print("SCRIBE DEBUG: Private key already has actual newlines")
+                    
+                    # Verify key format after processing
+                    processed_key = creds_info['private_key']
+                    if not processed_key.startswith('-----BEGIN PRIVATE KEY-----'):
+                        print("SCRIBE ERROR: Private key doesn't start with proper header")
+                        raise ValueError("Invalid private key format")
+                        
+                    if not processed_key.rstrip().endswith('-----END PRIVATE KEY-----'):
+                        print("SCRIBE ERROR: Private key doesn't end with proper footer")
+                        print(f"SCRIBE DEBUG: Key actually ends with: '{processed_key[-50:]}'")
+                        # Try to fix common issues
+                        if processed_key.rstrip().endswith('-----END PRIVATE KEY-----\\n'):
+                            print("SCRIBE: Fixing trailing \\n")
+                            creds_info['private_key'] = processed_key.replace('\\n', '\n')
+                        else:
+                            raise ValueError("Invalid private key format")
+                    
+                    # Final validation
+                    final_key = creds_info['private_key']
+                    lines = final_key.split('\n')
+                    print(f"SCRIBE DEBUG: Private key has {len(lines)} lines after processing")
+                    print(f"SCRIBE DEBUG: First line: '{lines[0]}'")
+                    print(f"SCRIBE DEBUG: Last line: '{lines[-1] if lines else 'NONE'}'")
+                    
+                    if len(lines) < 2:
+                        print("SCRIBE ERROR: Private key has too few lines")
+                        raise ValueError("Private key malformed - insufficient lines")
                 
                 credentials = service_account.Credentials.from_service_account_info(
                     creds_info,
@@ -61,9 +93,8 @@ class ScribeADKAgent(BaseADKAgent):
                         'https://www.googleapis.com/auth/presentations'
                     ]
                 )
-                print("SCRIBE DEBUG: Credentials object created successfully")
             else:
-                print("SCRIBE: No environment variable found, using file (local development)")
+                print("SCRIBE: Using Google credentials from file (local development)")
                 # Fallback to file (for local development)
                 creds_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
                                          'credentials', 'google_docs_cred.json')
@@ -83,9 +114,6 @@ class ScribeADKAgent(BaseADKAgent):
                         'https://www.googleapis.com/auth/presentations'
                     ]
                 )
-            
-            # Don't test credentials during initialization - test when actually used
-            print("SCRIBE DEBUG: Skipping credential refresh test during initialization")
             
             # Initialize Google API services
             self.docs_service = build('docs', 'v1', credentials=credentials)
@@ -210,26 +238,6 @@ class ScribeADKAgent(BaseADKAgent):
 
     async def _create_google_doc(self, deliverable: Dict[str, Any]) -> Dict[str, Any]:
         """Create Google Doc from provided content"""
-        
-        # Test credentials on first actual use
-        try:
-            print("SCRIBE DEBUG: Testing credentials on actual API call...")
-            # Try a simple API call first
-            test_doc = self.docs_service.documents().create(body={'title': 'Test Document'}).execute()
-            test_doc_id = test_doc.get('documentId')
-            print(f"SCRIBE DEBUG: Test document created successfully: {test_doc_id}")
-            
-            # Delete the test document
-            self.drive_service.files().delete(fileId=test_doc_id).execute()
-            print("SCRIBE DEBUG: Test document deleted successfully")
-            
-        except Exception as e:
-            print(f"SCRIBE ERROR: Credential test failed: {e}")
-            print(f"SCRIBE ERROR: Error type: {type(e)}")
-            # Try to get more details about the error
-            if hasattr(e, 'resp') and hasattr(e.resp, 'content'):
-                print(f"SCRIBE ERROR: Response content: {e.resp.content}")
-            raise
         
         title = deliverable.get("title", f"Document_{datetime.now().strftime('%Y%m%d_%H%M')}")
         content = deliverable.get("content", {})
