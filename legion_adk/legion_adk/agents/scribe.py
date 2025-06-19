@@ -1,7 +1,8 @@
-# agents/adk_scribe.py - SCRIBE creates Google Docs/Sheets/Slides from AUGUR's content with fixed Google Slides implementation
+# agents/adk_scribe.py - SCRIBE creates Google Docs/Sheets/Slides from AUGUR's content with environment-based credentials
 
 import os
 import uuid
+import json
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from services.state_manager import StateManager
@@ -20,24 +21,61 @@ class ScribeADKAgent(BaseADKAgent):
         print("SCRIBE: Ready to create Google documents from provided content")
 
     def _init_google_services(self):
-        """Initialize Google services"""
-        creds_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
-                                 'credentials', 'google_docs_cred.json')
+        """Initialize Google services using environment variable or file fallback"""
         
-        credentials = service_account.Credentials.from_service_account_file(
-            creds_path,
-            scopes=[
-                'https://www.googleapis.com/auth/documents',
-                'https://www.googleapis.com/auth/drive',
-                'https://www.googleapis.com/auth/spreadsheets',
-                'https://www.googleapis.com/auth/presentations'
-            ]
-        )
+        # Try environment variable first (recommended for production)
+        google_creds_json = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
         
-        self.docs_service = build('docs', 'v1', credentials=credentials)
-        self.drive_service = build('drive', 'v3', credentials=credentials)
-        self.sheets_service = build('sheets', 'v4', credentials=credentials)
-        self.slides_service = build('slides', 'v1', credentials=credentials)
+        try:
+            if google_creds_json:
+                print("SCRIBE: Using Google credentials from environment variable")
+                # Parse JSON from environment variable
+                creds_info = json.loads(google_creds_json)
+                credentials = service_account.Credentials.from_service_account_info(
+                    creds_info,
+                    scopes=[
+                        'https://www.googleapis.com/auth/documents',
+                        'https://www.googleapis.com/auth/drive',
+                        'https://www.googleapis.com/auth/spreadsheets',
+                        'https://www.googleapis.com/auth/presentations'
+                    ]
+                )
+            else:
+                print("SCRIBE: Using Google credentials from file (local development)")
+                # Fallback to file (for local development)
+                creds_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
+                                         'credentials', 'google_docs_cred.json')
+                
+                print(f"SCRIBE DEBUG: Looking for credentials at: {creds_path}")
+                print(f"SCRIBE DEBUG: File exists: {os.path.exists(creds_path)}")
+                
+                if not os.path.exists(creds_path):
+                    raise FileNotFoundError(f"Google credentials file not found at {creds_path}")
+                
+                credentials = service_account.Credentials.from_service_account_file(
+                    creds_path,
+                    scopes=[
+                        'https://www.googleapis.com/auth/documents',
+                        'https://www.googleapis.com/auth/drive',
+                        'https://www.googleapis.com/auth/spreadsheets',
+                        'https://www.googleapis.com/auth/presentations'
+                    ]
+                )
+            
+            # Initialize Google API services
+            self.docs_service = build('docs', 'v1', credentials=credentials)
+            self.drive_service = build('drive', 'v3', credentials=credentials)
+            self.sheets_service = build('sheets', 'v4', credentials=credentials)
+            self.slides_service = build('slides', 'v1', credentials=credentials)
+            
+            print("SCRIBE: Google services initialized successfully")
+            
+        except json.JSONDecodeError as e:
+            print(f"SCRIBE ERROR: Invalid JSON in GOOGLE_SERVICE_ACCOUNT_JSON environment variable: {e}")
+            raise
+        except Exception as e:
+            print(f"SCRIBE ERROR: Failed to initialize Google services: {e}")
+            raise
 
     def _get_agent_personality(self) -> str:
         return """a document creation specialist who takes formatted content and creates beautiful Google Docs, Sheets, and Slides."""
